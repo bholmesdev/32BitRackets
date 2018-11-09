@@ -1,3 +1,5 @@
 *.o
 *.log
+*.gba
+*.elf
 /.vscode
