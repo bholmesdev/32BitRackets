@@ -3,9 +3,42 @@
 
 #include "gba.h"
 
-typedef struct {
+#define NET_BOUNDARY(body_width) ((SCREEN_WIDTH) / 2 - (body_width)*2)
+
+#define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 5 * ((swingCounter) / 5))
+#define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 5)
+
+typedef struct
+{
+    int x;
+    int y;
+    int size;
+    int enabled;
+    u16 debugColor;
+} HitBox;
+
+typedef struct
+{
+    int width;
+    int height;
+    u16 color;
+} PlayerBody;
+
+typedef struct
+{
+    int x;
+    int y;
+    int swingFrameCounter;
+    HitBox racketHitBox;
+    PlayerBody body;
+} Player;
+
+typedef struct
+{
     // Store whether or not the game is over in this member:
     int gameOver;
+    Player player;
+    Player cpu;
 
     /*
     * TA-TODO: Add any logical elements you need to keep track of in your app.

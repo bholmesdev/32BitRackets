@@ -1,10 +1,41 @@
 #include "logic.h"
+#include "gba.h"
 
-void initializeAppState(AppState* appState) {
-    // TA-TODO: Initialize everything that's part of this AppState struct here.
-    // Suppose the struct contains random values, make sure everything gets
-    // the value it should have when the app begins.
-    UNUSED(appState);
+void initializeAppState(AppState *appState)
+{
+    const int p_height = 20;
+    const int p_width = 10;
+
+    Player *player = &appState->player;
+    Player *cpu = &appState->cpu;
+
+    player->body.width = cpu->body.width = p_width;
+    player->body.height = cpu->body.height = p_height;
+
+    player->body.color = cpu->body.color = (u16)0x1F;
+
+    player->y = cpu->y = SCREEN_HEIGHT - p_height - 20;
+    player->x = 10;
+    cpu->x = SCREEN_WIDTH - p_width - 10;
+
+    player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = (u16)0x7FF;
+    player->racketHitBox.size = cpu->racketHitBox.size = 10;
+    player->swingFrameCounter = cpu->swingFrameCounter = -1;
+}
+
+void setRacketHitBox(Player *player)
+{
+    if (player->swingFrameCounter <= 0)
+    {
+        player->racketHitBox.enabled = 0;
+        return;
+    }
+
+    player->racketHitBox.x = HIT_BOX_X(player->x, player->swingFrameCounter);
+    player->racketHitBox.y = HIT_BOX_Y(player->y, player->swingFrameCounter);
+
+    //decrement counter for next frame
+    player->swingFrameCounter--;
 }
 
 // TA-TODO: Add any process functions for sub-elements of your app here.
@@ -17,7 +48,8 @@ void initializeAppState(AppState* appState) {
 
 // This function processes your current app state and returns the new (i.e. next)
 // state of your application.
-AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow) {
+AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow)
+{
     /* TA-TODO: Do all of your app processing here. This function gets called
      * every frame.
      *
@@ -43,8 +75,23 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 
     AppState nextAppState = *currentAppState;
 
-    UNUSED(keysPressedBefore);
-    UNUSED(keysPressedNow);
+    Player *player = &nextAppState.player;
+
+    if (KEY_DOWN(BUTTON_RIGHT, BUTTONS) && (player->x < NET_BOUNDARY(player->body.width)))
+    {
+        player->x += 2;
+    }
+    if (KEY_DOWN(BUTTON_LEFT, BUTTONS) && (player->x > 0))
+    {
+        player->x -= 2;
+    }
+    if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore) && (player->swingFrameCounter <= 0))
+    {
+        player->swingFrameCounter = 20;
+        player->racketHitBox.enabled = 1;
+    }
+
+    setRacketHitBox(player);
 
     return nextAppState;
 }

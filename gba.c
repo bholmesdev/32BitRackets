@@ -3,14 +3,11 @@
 volatile unsigned short *videoBuffer = (volatile unsigned short *)0x6000000;
 u32 vBlankCounter = 0;
 
-const int SCREEN_WIDTH = 240;
-const int SCREEN_HEIGHT = 160;
-
 void waitForVBlank(void)
 {
-    while (SCANLINECOUNTER > 160)
+    while (*SCANLINECOUNTER > 160)
         ;
-    while (SCANLINECOUNTER < 160)
+    while (*SCANLINECOUNTER < 160)
         ;
 }
 
@@ -28,33 +25,39 @@ int randint(int min, int max)
 
 void setPixel(int x, int y, u16 color)
 {
-    videoBuffer[OFFSET(x, y, SCREEN_WIDTH)] = color;
+    videoBuffer[OFFSET(y, x, SCREEN_WIDTH)] = color;
 }
 
 void drawRectDMA(int x, int y, int width, int height, volatile u16 color)
 {
-    DMA[3].src = &color;
-    DMA[3].dst = &videoBuffer[OFFSET(x, y, SCREEN_WIDTH)];
-    DMA[3].cnt = width * height | DMA_SOURCE_FIXED | DMA_ON;
+    for (int row = 0; row < height; row++)
+    {
+        DMA[3].src = &color;
+        DMA[3].dst = &videoBuffer[OFFSET(y + row, x, SCREEN_WIDTH)];
+        DMA[3].cnt = width | DMA_SOURCE_FIXED | DMA_DESTINATION_INCREMENT | DMA_ON;
+    }
 }
 
-void drawFullScreenImageDMA(u16 *image)
+void drawFullScreenImageDMA(const u16 *image)
 {
     DMA[3].src = image;
     DMA[3].dst = videoBuffer;
-    DMA[3].cnt = SCREEN_HEIGHT * SCREEN_WIDTH | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
+    DMA[3].cnt = (SCREEN_HEIGHT * SCREEN_WIDTH) | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
 }
 
 void drawImageDMA(int x, int y, int width, int height, u16 *image)
 {
-    DMA[3].src = image;
-    DMA[3].dst = &videoBuffer[OFFSET(x, y, SCREEN_WIDTH)];
-    DMA[3].cnt = SCREEN_HEIGHT * SCREEN_WIDTH | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
+    for (int row = 0; row < height; row++)
+    {
+        DMA[3].src = &image[row * width];
+        DMA[3].dst = &videoBuffer[OFFSET(y + row, x, SCREEN_WIDTH)];
+        DMA[3].cnt = width | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
+    }
 }
 
 void fillScreenDMA(volatile u16 color)
 {
-    DMA[3].src = color;
+    DMA[3].src = &color;
     DMA[3].dst = videoBuffer;
     DMA[3].cnt = SCREEN_HEIGHT * SCREEN_WIDTH | DMA_SOURCE_FIXED | DMA_ON;
 }
