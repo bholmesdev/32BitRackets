@@ -1,14 +1,5 @@
 #include "graphics.h"
 #include "gba.h"
-#include <stdio.h>
-
-// TA-TODO: Add any draw/undraw functions for sub-elements of your app here.
-// For example, for a snake game, you could have a drawSnake function
-// or a drawFood function
-//
-// e.g.:
-// static void drawSnake(Snake* snake);
-// static void drawFood(Food* food);
 
 void drawBall(Ball ball, int undraw)
 {
@@ -70,8 +61,4 @@ void drawAppState(AppState *state)
     drawPlayer(state->cpu, 0);
 
     drawBall(state->ball, 0);
-
-    // char counter[20];
-    // sprintf(counter, "Frame: %d", vBlankCounter);
-    // drawString(10, 10, counter, 0x0000);
 }

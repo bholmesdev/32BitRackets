@@ -3,10 +3,12 @@
 
 #include "gba.h"
 
+#define SWING_FRAME_COUNTER_START 10
+
 #define NET_BOUNDARY(body_width) ((SCREEN_WIDTH) / 2 - (body_width)*2)
 
-#define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 5 * ((swingCounter) / 5))
-#define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 5)
+#define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 5 * ((swingCounter) / 3))
+#define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 3)
 
 #define APPLY_GRAVITY(velocity, vBlankCounter) (((vBlankCounter % 15) / 14) + velocity)
 
@@ -56,6 +58,7 @@ typedef struct
 
     int playerServing;
     int cpuServing;
+    int serveStarted;
 
 } AppState;
 

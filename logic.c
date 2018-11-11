@@ -27,6 +27,7 @@ void initializeAppState(AppState *appState)
 
     // START PLAYER AS SERVER
     appState->playerServing = 1;
+    appState->serveStarted = 0;
 }
 
 void setUpBallForPlayerServe(Ball *ball, Player player)
@@ -44,6 +45,8 @@ void setBallLocation(Ball *ball)
 {
     if (ball->y > SCREEN_HEIGHT)
     {
+        ball->velX = 0;
+        ball->velY = 0;
         return;
     }
     ball->x += ball->velX;
@@ -66,16 +69,31 @@ void setRacketHitBox(Player *player)
     player->swingFrameCounter--;
 }
 
-// TA-TODO: Add any process functions for sub-elements of your app here.
-// For example, for a snake game, you could have a processSnake function
-// or a createRandomFood function or a processFoods function.
-//
-// e.g.:
-// static Snake processSnake(Snake* currentSnake);
-// static void generateRandomFoods(AppState* currentAppState, AppState* nextAppState);
+int racketBallCollision(Player player, Ball *ball)
+{
+    HitBox hitBox = player.racketHitBox;
+    if (!hitBox.enabled)
+    {
+        return 0;
+    }
 
-// This function processes your current app state and returns the new (i.e. next)
-// state of your application.
+    int x1 = hitBox.x;
+    int x2 = hitBox.x + hitBox.size;
+    int y1 = hitBox.y;
+    int y2 = hitBox.y + hitBox.size;
+
+    int ballCenterX = ball->x + (ball->size / 2);
+    int ballCenterY = ball->y + (ball->size / 2);
+
+    if ((ballCenterX >= x1) && (ballCenterX <= x2) && (ballCenterY >= y1) && (ballCenterY <= y2))
+    {
+        ball->velX = 3;
+        ball->velY = -3;
+        return 1;
+    }
+    return 0;
+}
+
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow)
 {
     /* TA-TODO: Do all of your app processing here. This function gets called
@@ -104,16 +122,24 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     AppState nextAppState = *currentAppState;
 
     Player *player = &nextAppState.player;
+    Player *cpu = &nextAppState.cpu;
     Ball *ball = &nextAppState.ball;
 
     if (currentAppState->playerServing)
     {
-        setUpBallForPlayerServe(ball, currentAppState->player);
-        nextAppState.playerServing = 0;
+        if (!currentAppState->serveStarted)
+        {
+            setUpBallForPlayerServe(ball, currentAppState->player);
+        }
+        nextAppState.serveStarted = 1;
     }
     else if (currentAppState->cpuServing)
     {
-        setUpBallForPlayerServe(ball, currentAppState->cpu);
+        if (!currentAppState->serveStarted)
+        {
+            setUpBallForPlayerServe(ball, currentAppState->cpu);
+        }
+        nextAppState.serveStarted = 1;
     }
     else //Allow player motion when not serving
     {
@@ -128,12 +154,22 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     }
     if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore) && (player->swingFrameCounter <= 0))
     {
-        player->swingFrameCounter = 20;
+        player->swingFrameCounter = SWING_FRAME_COUNTER_START;
         player->racketHitBox.enabled = 1;
     }
 
     setRacketHitBox(player);
     setBallLocation(ball);
+
+    //on racket->ball collision, we assume serving is complete
+    if (racketBallCollision(*player, ball))
+    {
+        nextAppState.playerServing = 0;
+    }
+    if (racketBallCollision(*cpu, ball))
+    {
+        nextAppState.cpuServing = 0;
+    }
 
     vBlankCounter++;
 
