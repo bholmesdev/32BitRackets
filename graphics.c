@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "gba.h"
+#include <stdio.h>
 
 // TA-TODO: Add any draw/undraw functions for sub-elements of your app here.
 // For example, for a snake game, you could have a drawSnake function
@@ -9,19 +10,30 @@
 // static void drawSnake(Snake* snake);
 // static void drawFood(Food* food);
 
-void drawPlayer(Player *player, int undraw)
+void drawBall(Ball ball, int undraw)
 {
-    u16 color = player->body.color;
+    u16 color = ball.color;
     if (undraw)
     {
         color = BACKGROUND_COLOR;
     }
 
-    drawRectDMA(player->x, player->y, player->body.width, player->body.height, color);
+    drawRectDMA(ball.x, ball.y, ball.size, ball.size, color);
+}
 
-    if (player->racketHitBox.debugColor)
+void drawPlayer(Player player, int undraw)
+{
+    u16 color = player.body.color;
+    if (undraw)
     {
-        HitBox hitBox = player->racketHitBox;
+        color = BACKGROUND_COLOR;
+    }
+
+    drawRectDMA(player.x, player.y, player.body.width, player.body.height, color);
+
+    if (player.racketHitBox.debugColor)
+    {
+        HitBox hitBox = player.racketHitBox;
         drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, hitBox.debugColor);
     }
 }
@@ -38,8 +50,10 @@ void fullDrawAppState(AppState *state)
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state)
 {
-    drawPlayer(&state->player, 1);
-    drawPlayer(&state->cpu, 1);
+    drawPlayer(state->player, 1);
+    drawPlayer(state->cpu, 1);
+
+    drawBall(state->ball, 1);
 
     if (state->player.racketHitBox.debugColor)
     {
@@ -52,6 +66,12 @@ void undrawAppState(AppState *state)
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state)
 {
-    drawPlayer(&state->player, 0);
-    drawPlayer(&state->cpu, 0);
+    drawPlayer(state->player, 0);
+    drawPlayer(state->cpu, 0);
+
+    drawBall(state->ball, 0);
+
+    // char counter[20];
+    // sprintf(counter, "Frame: %d", vBlankCounter);
+    // drawString(10, 10, counter, 0x0000);
 }

@@ -8,7 +8,7 @@
 # The name of your desired application
 # This should be a just a name i.e MyFirstGBAGame
 # No SPACES AFTER THE NAME.
-PROGNAME = Game
+PROGNAME = 32_Bit_Rackets
 
 # TA-TODO: Add the C files you want compiled here (replace extension with .o)
 # Here you must put a list of all of the object files

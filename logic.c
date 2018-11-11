@@ -6,6 +6,7 @@ void initializeAppState(AppState *appState)
     const int p_height = 20;
     const int p_width = 10;
 
+    //SETUP PLAYER
     Player *player = &appState->player;
     Player *cpu = &appState->cpu;
 
@@ -17,10 +18,37 @@ void initializeAppState(AppState *appState)
     player->y = cpu->y = SCREEN_HEIGHT - p_height - 20;
     player->x = 10;
     cpu->x = SCREEN_WIDTH - p_width - 10;
+    cpu->isCpu = 1;
 
+    //SETUP HITBOX
     player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = (u16)0x7FF;
     player->racketHitBox.size = cpu->racketHitBox.size = 10;
     player->swingFrameCounter = cpu->swingFrameCounter = -1;
+
+    // START PLAYER AS SERVER
+    appState->playerServing = 1;
+}
+
+void setUpBallForPlayerServe(Ball *ball, Player player)
+{
+    int offset = (player.isCpu) ? -(player.body.width - 2) : (player.body.width - 2);
+    ball->x = player.x + offset;
+    ball->y = player.y;
+    ball->size = 5;
+    ball->color = 0x7FF;
+    ball->velX = 0;
+    ball->velY = -3;
+}
+
+void setBallLocation(Ball *ball)
+{
+    if (ball->y > SCREEN_HEIGHT)
+    {
+        return;
+    }
+    ball->x += ball->velX;
+    ball->velY = APPLY_GRAVITY(ball->velY, vBlankCounter);
+    ball->y += ball->velY;
 }
 
 void setRacketHitBox(Player *player)
@@ -76,14 +104,27 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     AppState nextAppState = *currentAppState;
 
     Player *player = &nextAppState.player;
+    Ball *ball = &nextAppState.ball;
 
-    if (KEY_DOWN(BUTTON_RIGHT, BUTTONS) && (player->x < NET_BOUNDARY(player->body.width)))
+    if (currentAppState->playerServing)
     {
-        player->x += 2;
+        setUpBallForPlayerServe(ball, currentAppState->player);
+        nextAppState.playerServing = 0;
     }
-    if (KEY_DOWN(BUTTON_LEFT, BUTTONS) && (player->x > 0))
+    else if (currentAppState->cpuServing)
     {
-        player->x -= 2;
+        setUpBallForPlayerServe(ball, currentAppState->cpu);
+    }
+    else //Allow player motion when not serving
+    {
+        if (KEY_DOWN(BUTTON_RIGHT, BUTTONS) && (player->x < NET_BOUNDARY(player->body.width)))
+        {
+            player->x += 2;
+        }
+        if (KEY_DOWN(BUTTON_LEFT, BUTTONS) && (player->x > 0))
+        {
+            player->x -= 2;
+        }
     }
     if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore) && (player->swingFrameCounter <= 0))
     {
@@ -92,6 +133,9 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     }
 
     setRacketHitBox(player);
+    setBallLocation(ball);
+
+    vBlankCounter++;
 
     return nextAppState;
 }

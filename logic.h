@@ -8,6 +8,8 @@
 #define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 5 * ((swingCounter) / 5))
 #define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 5)
 
+#define APPLY_GRAVITY(velocity, vBlankCounter) (((vBlankCounter % 15) / 14) + velocity)
+
 typedef struct
 {
     int x;
@@ -29,9 +31,20 @@ typedef struct
     int x;
     int y;
     int swingFrameCounter;
+    int isCpu;
     HitBox racketHitBox;
     PlayerBody body;
 } Player;
+
+typedef struct
+{
+    int x;
+    int y;
+    int velX;
+    int velY;
+    int size;
+    u16 color;
+} Ball;
 
 typedef struct
 {
@@ -39,17 +52,10 @@ typedef struct
     int gameOver;
     Player player;
     Player cpu;
+    Ball ball;
 
-    /*
-    * TA-TODO: Add any logical elements you need to keep track of in your app.
-    *
-    * For example, for a Snake game, those could be:
-    *
-    * Snake snake;
-    * Food foods[10];
-    * int points;
-    *
-    */
+    int playerServing;
+    int cpuServing;
 
 } AppState;
 
