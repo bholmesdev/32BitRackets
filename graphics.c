@@ -51,6 +51,11 @@ void undrawAppState(AppState *state)
         HitBox hitBox = state->player.racketHitBox;
         drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, BACKGROUND_COLOR);
     }
+
+    if (state->serveStarted)
+    {
+        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BACKGROUND_COLOR);
+    }
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -61,4 +66,9 @@ void drawAppState(AppState *state)
     drawPlayer(state->cpu, 0);
 
     drawBall(state->ball, 0);
+
+    if (!(state->serveStarted) && (state->playerServing))
+    {
+        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BLACK);
+    }
 }

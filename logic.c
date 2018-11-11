@@ -37,8 +37,14 @@ void setUpBallForPlayerServe(Ball *ball, Player player)
     ball->y = player.y;
     ball->size = 5;
     ball->color = 0x7FF;
-    ball->velX = 0;
-    ball->velY = -3;
+}
+
+void checkForReserve(Player player, Ball ball, int *serveStarted)
+{
+    if (ball.y > player.y + ball.size)
+    {
+        *serveStarted = 0;
+    }
 }
 
 void setBallLocation(Ball *ball)
@@ -88,10 +94,18 @@ int racketBallCollision(Player player, Ball *ball)
     if ((ballCenterX >= x1) && (ballCenterX <= x2) && (ballCenterY >= y1) && (ballCenterY <= y2))
     {
         ball->velX = 3;
-        ball->velY = -3;
+        ball->velY = -2;
         return 1;
     }
     return 0;
+}
+
+void boing(Ball *ball)
+{
+    if (ball->y >= GROUND)
+    {
+        ball->velY *= -1;
+    }
 }
 
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow)
@@ -129,9 +143,15 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     {
         if (!currentAppState->serveStarted)
         {
+            if (KEY_JUST_PRESSED(BUTTON_B, keysPressedNow, keysPressedBefore))
+            {
+                ball->velX = 0;
+                ball->velY = SERVE_VELOCITY_START;
+                nextAppState.serveStarted = 1;
+            }
             setUpBallForPlayerServe(ball, currentAppState->player);
+            return nextAppState;
         }
-        nextAppState.serveStarted = 1;
     }
     else if (currentAppState->cpuServing)
     {
@@ -160,6 +180,8 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 
     setRacketHitBox(player);
     setBallLocation(ball);
+    checkForReserve(*player, *ball, &nextAppState.serveStarted);
+    boing(ball);
 
     //on racket->ball collision, we assume serving is complete
     if (racketBallCollision(*player, ball))
