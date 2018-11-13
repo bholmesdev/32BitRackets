@@ -111,6 +111,7 @@ typedef struct
 // Use this variable to count vBlanks. Initialized in gba.c and to be
 // manipulated by waitForVBlank()
 extern u32 vBlankCounter;
+extern u32 gravityCounter;
 
 /**
  * Runs a blocking loop until the start of next VBlank.

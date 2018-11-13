@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "gba.h"
+#include <stdio.h>
 
 void drawBall(Ball ball, int undraw)
 {
@@ -22,11 +23,18 @@ void drawPlayer(Player player, int undraw)
 
     drawRectDMA(player.x, player.y, player.body.width, player.body.height, color);
 
-    if (player.racketHitBox.debugColor)
+    if (player.racketHitBox.debugColor && player.racketHitBox.enabled)
     {
         HitBox hitBox = player.racketHitBox;
         drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, hitBox.debugColor);
     }
+}
+
+void drawBallDebug(AppState state)
+{
+    char str[80];
+    sprintf(str, "VelX = %d VelY = %d", state.ball.velX, state.ball.velY);
+    drawString(10, 30, str, BLACK);
 }
 
 // This function will be used to draw everything about the app
@@ -56,6 +64,9 @@ void undrawAppState(AppState *state)
     {
         drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BACKGROUND_COLOR);
     }
+
+    drawRectDMA(10, 20, SCREEN_WIDTH, 30, BACKGROUND_COLOR);
+    drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, BACKGROUND_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -71,4 +82,6 @@ void drawAppState(AppState *state)
     {
         drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BLACK);
     }
+    drawBallDebug(*state);
+    drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, GREEN);
 }

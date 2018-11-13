@@ -2,6 +2,7 @@
 
 volatile unsigned short *videoBuffer = (volatile unsigned short *)0x6000000;
 u32 vBlankCounter = 0;
+u32 gravityCounter = 0;
 
 void waitForVBlank(void)
 {
