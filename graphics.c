@@ -68,7 +68,7 @@ void undrawAppState(AppState *state)
 
     if (state->serveStarted)
     {
-        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BACKGROUND_COLOR);
+        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BACKGROUND_COLOR);
     }
 
     drawRectDMA(10, 20, SCREEN_WIDTH, 30, BACKGROUND_COLOR);
@@ -86,7 +86,7 @@ void drawAppState(AppState *state)
 
     if (!(state->serveStarted) && (state->playerServing))
     {
-        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BLACK);
+        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BLACK);
     }
     drawBallDebug(*state);
     drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, GREEN);

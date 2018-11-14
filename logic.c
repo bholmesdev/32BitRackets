@@ -51,11 +51,11 @@ void checkForReServe(Player player, Ball ball, AppState *state)
     {
         state->serveStarted = 0;
     }
-    // if ((ball.x > SCREEN_WIDTH) || (ball.x < 0))
-    // {
-    //     state->serveStarted = 0;
-    //     state->playerServing = 1;
-    // }
+    if ((ball.x > SCREEN_WIDTH) || (ball.x < 0))
+    {
+        state->serveStarted = 0;
+        state->playerServing = 1;
+    }
 }
 
 void setBallLocation(Ball *ball)
