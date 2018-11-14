@@ -7,6 +7,7 @@
 #define SERVE_VELOCITY_START -2
 #define GROUND SCREEN_HEIGHT - 20
 #define GRAVITY_FACTOR 13
+#define SWING_DELAY_MIN -5
 
 #define NET_BOUNDARY(body_width) ((SCREEN_WIDTH) / 2 - (body_width)*2)
 
@@ -26,6 +27,9 @@
 
 #define PLAYER_JUMP_CPU_POS_FACTOR(playerY) (((GROUND) - (playerY)-19) * ((GROUND) - (playerY)-19))
 #define BALL_SPEED_CPU_POS_FACTOR(velocity) ((velocity) * (velocity) * (velocity)*2)
+
+// #define RANDOMIZED_SWING_TIMING(vBlankCounter, ballVelocity) ((vBlankCounter * vBlankCounter) % ((ballVelocity)*17))
+#define RANDOMIZED_SWING_TIMING(vBlankCounter, ballVelocity) (((vBlankCounter) % (ballVelocity * 20)) + (SWING_DELAY_MIN) + 1)
 
 typedef struct
 {
@@ -78,6 +82,8 @@ typedef struct
     int playerServing;
     int cpuServing;
     int serveStarted;
+
+    int cpuSwingDelay;
 
 } AppState;
 

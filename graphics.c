@@ -60,6 +60,12 @@ void undrawAppState(AppState *state)
         drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, BACKGROUND_COLOR);
     }
 
+    if (state->cpu.racketHitBox.debugColor)
+    {
+        HitBox hitBox = state->cpu.racketHitBox;
+        drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, BACKGROUND_COLOR);
+    }
+
     if (state->serveStarted)
     {
         drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press B to serve", BACKGROUND_COLOR);

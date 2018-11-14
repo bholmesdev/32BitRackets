@@ -81,7 +81,7 @@ int getBallLandingX(Ball ball)
     int horizontalTravel = 0;
     if (ball.velX == 3)
     {
-        horizontalTravel = 150;
+        horizontalTravel = 170;
     }
     else if (ball.velX == 2)
     {
@@ -247,10 +247,14 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         player->swingFrameCounter = SWING_FRAME_COUNTER_START;
         player->racketHitBox.enabled = 1;
     }
-    if ((currentAppState->expectedBallLandingX - ball->x < 10) && (cpu->swingFrameCounter == 0) && (currentAppState->expectedBallLandingX > 0)) //attempt CPU swing when it gets close
+    if ((currentAppState->cpuSwingDelay > SWING_DELAY_MIN) && (currentAppState->expectedBallLandingX > 0)) //attempt CPU swing when it gets close
     {
-        cpu->swingFrameCounter = SWING_FRAME_COUNTER_START;
-        cpu->racketHitBox.enabled = 1;
+        if (currentAppState->expectedBallLandingX - ball->x - currentAppState->cpuSwingDelay <= 0)
+        {
+            cpu->swingFrameCounter = SWING_FRAME_COUNTER_START;
+            cpu->racketHitBox.enabled = 1;
+            nextAppState.cpuSwingDelay = SWING_DELAY_MIN;
+        }
     }
 
     setRacketHitBox(player);
@@ -268,8 +272,9 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         nextAppState.expectedBallLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
         if (nextAppState.expectedBallLandingX > SCREEN_WIDTH - 5)
         {
-            nextAppState.expectedBallLandingX = SCREEN_WIDTH - 20;
+            nextAppState.expectedBallLandingX = SCREEN_WIDTH - 10;
         }
+        nextAppState.cpuSwingDelay = RANDOMIZED_SWING_TIMING(vBlankCounter, ball->velX); //setup cpu to swing
     }
     if (racketBallCollision(*cpu, ball))
     {
@@ -278,6 +283,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     }
 
     gravityCounter++;
+    vBlankCounter++;
 
     return nextAppState;
 }
