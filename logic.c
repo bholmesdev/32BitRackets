@@ -3,24 +3,20 @@
 
 void initializePlayers(Player *player, Player *cpu)
 {
-    const int p_height = 20;
-    const int p_width = 10;
-
-    player->body.width = cpu->body.width = p_width;
-    player->body.height = cpu->body.height = p_height;
+    player->body.width = cpu->body.width = PLAYER_WIDTH;
+    player->body.height = cpu->body.height = PLAYER_HEIGHT;
 
     player->body.color = cpu->body.color = RED;
 
-    player->y = cpu->y = SCREEN_HEIGHT - p_height - 20;
+    player->y = cpu->y = SCREEN_HEIGHT - PLAYER_HEIGHT * 2;
     player->x = 20;
     player->velJump = cpu->velJump = 0;
-    cpu->x = SCREEN_WIDTH - p_width - 20;
+    cpu->x = SCREEN_WIDTH - PLAYER_WIDTH - 20;
     cpu->isCpu = 1;
 }
 
 void initializeAppState(AppState *appState)
 {
-
     //SETUP PLAYER
     Player *player = &appState->player;
     Player *cpu = &appState->cpu;
@@ -171,29 +167,6 @@ void boing(Ball *ball)
 
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow)
 {
-    /* TA-TODO: Do all of your app processing here. This function gets called
-     * every frame.
-     *
-     * To check for key presses, use the KEY_JUST_PRESSED macro for cases where
-     * you want to detect each key press once, or the KEY_DOWN macro for checking
-     * if a button is still down.
-     *
-     * To count time, suppose that the GameBoy runs at a fixed FPS (60fps) and
-     * that vblank is processed once per frame. Use the vBlankCounter variable
-     * and the modulus % operator to do things once every (n) frames. Note that
-     * you want to process button every frame regardless (otherwise you will
-     * miss inputs.)
-     *
-     * Do not do any drawing here.
-     *
-     * TA-TODO: VERY IMPORTANT! READ THIS PART.
-     * You need to perform all calculations on the currentAppState passed to you,
-     * and perform all state updates on the nextAppState state which we define below
-     * and return at the end of the function. YOU SHOULD NOT MODIFY THE CURRENTSTATE.
-     * Modifying the currentAppState will mean the undraw function will not be able
-     * to undraw it later.
-     */
-
     AppState nextAppState = *currentAppState;
 
     Player *player = &nextAppState.player;
@@ -247,14 +220,12 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         player->swingFrameCounter = SWING_FRAME_COUNTER_START;
         player->racketHitBox.enabled = 1;
     }
-    if ((currentAppState->cpuSwingDelay > SWING_DELAY_MIN) && (currentAppState->expectedBallLandingX > 0)) //attempt CPU swing when it gets close
+    //attempt CPU swing when ball gets close
+    if ((currentAppState->cpuSwingDelay > SWING_DELAY_MIN) && currentAppState->expectedBallLandingX - ball->x - currentAppState->cpuSwingDelay <= 0)
     {
-        if (currentAppState->expectedBallLandingX - ball->x - currentAppState->cpuSwingDelay <= 0)
-        {
-            cpu->swingFrameCounter = SWING_FRAME_COUNTER_START;
-            cpu->racketHitBox.enabled = 1;
-            nextAppState.cpuSwingDelay = SWING_DELAY_MIN;
-        }
+        cpu->swingFrameCounter = SWING_FRAME_COUNTER_START;
+        cpu->racketHitBox.enabled = 1;
+        nextAppState.cpuSwingDelay = SWING_DELAY_MIN;
     }
 
     setRacketHitBox(player);
@@ -269,7 +240,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     if (racketBallCollision(*player, ball))
     {
         nextAppState.playerServing = 0;
-        nextAppState.expectedBallLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
+        nextAppState.expectedBallLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y, ball->velX) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
         if (nextAppState.expectedBallLandingX > SCREEN_WIDTH - 5)
         {
             nextAppState.expectedBallLandingX = SCREEN_WIDTH - 10;
