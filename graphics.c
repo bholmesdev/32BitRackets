@@ -1,6 +1,10 @@
 #include "graphics.h"
 #include "gba.h"
+#include "sprites.h"
 #include <stdio.h>
+
+volatile OamEntry *playerSprite = &shadow[0];
+volatile OamEntry *cpuSprite = &shadow[1];
 
 void drawBall(Ball ball, int undraw)
 {
@@ -13,21 +17,73 @@ void drawBall(Ball ball, int undraw)
     drawRectDMA(ball.x, ball.y, ball.size, ball.size, color);
 }
 
-void drawPlayer(Player player, int undraw)
+int getSwingFrame(int swingFrameCounter)
 {
-    u16 color = player.body.color;
-    if (undraw)
+    int frame = (SWING_FRAME_COUNTER_START - swingFrameCounter) / 4;
+    if (frame > 2)
     {
-        color = BACKGROUND_COLOR;
+        frame = 2;
     }
+    return frame;
+}
 
-    drawRectDMA(player.x, player.y, player.body.width, player.body.height, color);
-
+void drawHitBox(Player player)
+{
     if (player.racketHitBox.debugColor && player.racketHitBox.enabled)
     {
         HitBox hitBox = player.racketHitBox;
         drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, hitBox.debugColor);
     }
+}
+
+void drawPlayer(Player player, int currentlyServing)
+{
+    if (player.racketHitBox.enabled)
+    {
+        int frame = getSwingFrame(player.swingFrameCounter);
+        playerSprite->attr0 = (player.y - 5) | SPRITES_PALETTE_TYPE | SWING_BLUE_SPRITE_SHAPE;
+        playerSprite->attr1 = player.x | SWING_BLUE_SPRITE_SIZE;
+        playerSprite->attr2 = swing_blue_frames[frame] | swing_blue_palettes[frame];
+    }
+    else if (currentlyServing)
+    {
+        playerSprite->attr0 = (player.y - 5) | SPRITES_PALETTE_TYPE | SERVE_BLUE_SPRITE_SHAPE;
+        playerSprite->attr1 = player.x | SERVE_BLUE_SPRITE_SIZE;
+        playerSprite->attr2 = SERVE_BLUE_ID | SERVE_BLUE_PALETTE_ID;
+    }
+    else
+    {
+        playerSprite->attr0 = (player.y - 5) | SPRITES_PALETTE_TYPE | SWING_BLUE_SPRITE_SHAPE;
+        playerSprite->attr1 = player.x | SWING_BLUE_SPRITE_SIZE;
+        playerSprite->attr2 = swing_blue_frames[1] | swing_blue_palettes[1];
+    }
+
+    drawHitBox(player);
+}
+
+void drawCpu(Player cpu, int currentlyServing)
+{
+    if (cpu.racketHitBox.enabled && !currentlyServing)
+    {
+        int frame = getSwingFrame(cpu.swingFrameCounter);
+        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SWING_RED_SPRITE_SHAPE;
+        cpuSprite->attr1 = (cpu.x - PLAYER_WIDTH) | SWING_RED_SPRITE_SIZE;
+        cpuSprite->attr2 = swing_red_frames[frame] | swing_red_palettes[frame];
+    }
+    else if (currentlyServing)
+    {
+        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SERVE_RED_SPRITE_SHAPE;
+        cpuSprite->attr1 = cpu.x | SERVE_RED_SPRITE_SIZE;
+        cpuSprite->attr2 = SERVE_RED_ID | SERVE_RED_PALETTE_ID;
+    }
+    else
+    {
+        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SWING_RED_SPRITE_SHAPE;
+        cpuSprite->attr1 = (cpu.x - PLAYER_WIDTH) | SWING_RED_SPRITE_SIZE;
+        cpuSprite->attr2 = swing_red_frames[1] | swing_red_palettes[1];
+    }
+
+    drawHitBox(cpu);
 }
 
 void drawBallDebug(AppState state)
@@ -42,6 +98,7 @@ void drawBallDebug(AppState state)
 void fullDrawAppState(AppState *state)
 {
     fillScreenDMA(BACKGROUND_COLOR);
+    initializeSprites();
     UNUSED(state);
 }
 
@@ -49,9 +106,6 @@ void fullDrawAppState(AppState *state)
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state)
 {
-    drawPlayer(state->player, 1);
-    drawPlayer(state->cpu, 1);
-
     drawBall(state->ball, 1);
 
     if (state->player.racketHitBox.debugColor)
@@ -71,7 +125,7 @@ void undrawAppState(AppState *state)
         drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BACKGROUND_COLOR);
     }
 
-    drawRectDMA(10, 20, SCREEN_WIDTH, 30, BACKGROUND_COLOR);
+    // drawRectDMA(10, 20, SCREEN_WIDTH, 30, BACKGROUND_COLOR);
     drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, BACKGROUND_COLOR);
 }
 
@@ -79,8 +133,17 @@ void undrawAppState(AppState *state)
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state)
 {
-    drawPlayer(state->player, 0);
-    drawPlayer(state->cpu, 0);
+    drawPlayer(state->player, (state->playerServing && state->serveStarted));
+    drawCpu(state->cpu, (state->cpuServing && state->serveStarted));
+    drawSprites();
+
+    /*
+    OamEntry* dog = shadow;
+	dog->attr0 = 48 | DOG_PALETTE_TYPE | DOG_SPRITE_SHAPE;
+	dog->attr1 = 88 | DOG_SPRITE_SIZE;
+	dog->attr2 = DOG_PALETTE_ID | DOG_ID;
+
+    */
 
     drawBall(state->ball, 0);
 
@@ -88,6 +151,6 @@ void drawAppState(AppState *state)
     {
         drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BLACK);
     }
-    drawBallDebug(*state);
+    // drawBallDebug(*state);
     drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, GREEN);
 }

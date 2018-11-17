@@ -4,7 +4,7 @@
 #include "gba.h"
 
 #define PLAYER_HEIGHT 20
-#define PLAYER_WIDTH 10
+#define PLAYER_WIDTH 20
 
 #define SWING_FRAME_COUNTER_START 12
 #define SERVE_VELOCITY_START -2

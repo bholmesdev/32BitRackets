@@ -1,5 +1,6 @@
 #ifndef GBA_SEEN
 #define GBA_SEEN
+#define OBJ_ENABLE 0x1000
 
 // ---------------------------------------------------------------------------
 //                       USEFUL TYPEDEFS
@@ -12,6 +13,17 @@ typedef unsigned short u16;
 
 /** An unsigned 8-bit (1-byte) type. Note that this type cannot be written onto RAM directly. */
 typedef unsigned char u8;
+
+/** For sprite drawing */
+typedef struct
+{
+	u16 attr0;
+	u16 attr1;
+	u16 attr2;
+	u16 fill;
+} OamEntry;
+
+extern volatile OamEntry shadow[128];
 
 // ---------------------------------------------------------------------------
 //                       MODE3 MACROS
@@ -57,11 +69,28 @@ extern volatile unsigned short *videoBuffer;
 #define BUTTONS *(volatile u32 *)0x4000130
 #define KEY_DOWN(key, buttons) (~(buttons) & (key))
 
-// TA-TODO: COMPLETE THIS MACRO.
-// Remember that a button is recently pressed if it wasn't pressed in the last
-// input (oldButtons) but is pressed in the current input. Use the KEY_DOWN
-// macro to check if the button was pressed in the inputs.
 #define KEY_JUST_PRESSED(key, buttons, oldButtons) (((KEY_DOWN(key, buttons)) & (key)) & ~((KEY_DOWN(key, oldButtons)) & (key)))
+
+// ---------------------------------------------------------------------------
+//											SPRITE INITIALIZATION
+// ---------------------------------------------------------------------------
+#define OAMMEM ((OamEntry *)0x7000000)
+typedef struct
+{
+	u16 tileimg[8192];
+} charblock;
+#define CHARBLOCKBASE ((charblock *)0x6000000)
+#define ATTR0_REG (0 << 8)		 // Default
+#define ATTR0_HIDE (2 << 8)		 // If set the sprite is hidden, by default all sprites are SHOWN
+#define ATTR0_MOSAIC (1 << 12) // C controls Mosaic effect if set the sprite will appear pixelated.
+#define ATTR1_NOFLIP 0
+#define ATTR1_HFLIP (1 << 12)
+#define ATTR1_VFLIP (1 << 13)
+#define PRIORITY(pri) ((pri) << 10)
+#define SPRITEPAL ((u16 *)0x5000200)
+
+extern unsigned short swing_red_palettes[3];
+extern unsigned short swing_blue_palettes[3];
 
 // ---------------------------------------------------------------------------
 //                       DMA
@@ -140,6 +169,8 @@ void drawRectDMA(int x, int y, int width, int height, volatile u16 color);
 void drawFullScreenImageDMA(const u16 *image);
 void drawImageDMA(int x, int y, int width, int height, u16 *image);
 void fillScreenDMA(volatile u16 color);
+void initializeSprites(void);
+void drawSprites(void);
 void drawChar(int col, int row, char ch, u16 color);
 void drawString(int col, int row, char *str, u16 color);
 void drawCenteredString(int col, int row, int width, int height, char *str, u16 color);

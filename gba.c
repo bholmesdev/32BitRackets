@@ -1,8 +1,23 @@
 #include "gba.h"
+#include "sprites.h"
 
 volatile unsigned short *videoBuffer = (volatile unsigned short *)0x6000000;
 u32 vBlankCounter = 0;
 u32 gravityCounter = 0;
+
+unsigned short swing_red_palettes[3] =
+    {
+        SWING_RED0_PALETTE_ID,
+        SWING_RED1_PALETTE_ID,
+        SWING_RED2_PALETTE_ID};
+
+unsigned short swing_blue_palettes[3] =
+    {
+        SWING_BLUE0_PALETTE_ID,
+        SWING_BLUE1_PALETTE_ID,
+        SWING_BLUE2_PALETTE_ID};
+
+volatile OamEntry shadow[128];
 
 void waitForVBlank(void)
 {
@@ -61,6 +76,29 @@ void fillScreenDMA(volatile u16 color)
     DMA[3].src = &color;
     DMA[3].dst = videoBuffer;
     DMA[3].cnt = SCREEN_HEIGHT * SCREEN_WIDTH | DMA_SOURCE_FIXED | DMA_ON;
+}
+
+void initializeSprites(void)
+{
+    DMA[3].src = sprites_palette;
+    DMA[3].dst = SPRITEPAL;
+    DMA[3].cnt = SPRITES_PALETTE_LENGTH | DMA_ON;
+
+    DMA[3].src = sprites;
+    DMA[3].dst = &CHARBLOCKBASE[5];
+    DMA[3].cnt = SPRITES_LENGTH | DMA_ON;
+
+    for (int i = 0; i < 128; i++)
+    {
+        shadow[i].attr0 = ATTR0_HIDE;
+    }
+}
+
+void drawSprites(void)
+{
+    DMA[3].src = shadow;
+    DMA[3].dst = OAMMEM;
+    DMA[3].cnt = 128 * 4 | DMA_ON;
 }
 
 void drawChar(int col, int row, char ch, u16 color)

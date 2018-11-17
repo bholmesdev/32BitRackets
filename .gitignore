@@ -3,3 +3,4 @@
 *.gba
 *.elf
 /.vscode
+.DS_Store

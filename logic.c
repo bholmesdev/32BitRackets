@@ -23,7 +23,7 @@ void initializeAppState(AppState *appState)
     initializePlayers(player, cpu);
 
     //SETUP HITBOX
-    player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = CYAN;
+    // player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = CYAN;
     player->racketHitBox.size = cpu->racketHitBox.size = 12;
     player->swingFrameCounter = cpu->swingFrameCounter = 0;
 
