@@ -1,20 +1,25 @@
 #include "graphics.h"
 #include "gba.h"
 #include "sprites.h"
+#include "./images/tennisCourtBackground.h"
 #include <stdio.h>
 
 volatile OamEntry *playerSprite = &shadow[0];
 volatile OamEntry *cpuSprite = &shadow[1];
+volatile OamEntry *ballSprite = &shadow[2];
 
-void drawBall(Ball ball, int undraw)
+void drawBall(Ball ball)
 {
-    u16 color = ball.color;
-    if (undraw)
-    {
-        color = BACKGROUND_COLOR;
-    }
+    // u16 color = ball.color;
+    // if (undraw)
+    // {
+    //     color = BACKGROUND_COLOR;
+    // }
+    ballSprite->attr0 = (ball.y - 2) | SPRITES_PALETTE_TYPE | TENNIS_BALL_SPRITE_SHAPE;
+    ballSprite->attr1 = (ball.x - 2) | TENNIS_BALL_SPRITE_SIZE;
+    ballSprite->attr2 = TENNIS_BALL_ID | TENNIS_BALL_PALETTE_ID;
 
-    drawRectDMA(ball.x, ball.y, ball.size, ball.size, color);
+    // drawRectDMA(ball.x, ball.y, ball.size, ball.size, color);
 }
 
 int getSwingFrame(int swingFrameCounter)
@@ -97,7 +102,7 @@ void drawBallDebug(AppState state)
 // including the background and whatnot.
 void fullDrawAppState(AppState *state)
 {
-    fillScreenDMA(BACKGROUND_COLOR);
+    drawFullScreenImageDMA(tennis_court_background);
     initializeSprites();
     UNUSED(state);
 }
@@ -106,27 +111,27 @@ void fullDrawAppState(AppState *state)
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state)
 {
-    drawBall(state->ball, 1);
-
     if (state->player.racketHitBox.debugColor)
     {
         HitBox hitBox = state->player.racketHitBox;
-        drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, BACKGROUND_COLOR);
+        drawFullScreenImagePortionDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, tennis_court_background);
     }
 
     if (state->cpu.racketHitBox.debugColor)
     {
         HitBox hitBox = state->cpu.racketHitBox;
-        drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, BACKGROUND_COLOR);
+        drawFullScreenImagePortionDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, tennis_court_background);
     }
 
     if (state->serveStarted)
     {
-        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BACKGROUND_COLOR);
+        drawFullScreenImagePortionDMA(0, 50, SCREEN_WIDTH, 20, tennis_court_background);
     }
 
-    // drawRectDMA(10, 20, SCREEN_WIDTH, 30, BACKGROUND_COLOR);
-    drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, BACKGROUND_COLOR);
+    if (state->ball.landingDebugColor)
+    {
+        drawFullScreenImagePortionDMA(state->ball.expectedLandingX, GROUND, 5, 5, tennis_court_background);
+    }
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -135,22 +140,15 @@ void drawAppState(AppState *state)
 {
     drawPlayer(state->player, (state->playerServing && state->serveStarted));
     drawCpu(state->cpu, (state->cpuServing && state->serveStarted));
+    drawBall(state->ball);
     drawSprites();
-
-    /*
-    OamEntry* dog = shadow;
-	dog->attr0 = 48 | DOG_PALETTE_TYPE | DOG_SPRITE_SHAPE;
-	dog->attr1 = 88 | DOG_SPRITE_SIZE;
-	dog->attr2 = DOG_PALETTE_ID | DOG_ID;
-
-    */
-
-    drawBall(state->ball, 0);
 
     if (!(state->serveStarted) && (state->playerServing))
     {
-        drawCenteredString(0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50, "Press A to serve", BLACK);
+        drawCenteredString(0, 50, SCREEN_WIDTH, 20, "Press A to serve", BLACK);
     }
-    // drawBallDebug(*state);
-    drawRectDMA(state->expectedBallLandingX, SCREEN_HEIGHT - 20, 5, 5, GREEN);
+    if (state->ball.landingDebugColor)
+    {
+        drawRectDMA(state->ball.expectedLandingX, GROUND, 5, 5, state->ball.landingDebugColor);
+    }
 }

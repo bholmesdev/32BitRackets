@@ -8,11 +8,11 @@
 
 #define SWING_FRAME_COUNTER_START 12
 #define SERVE_VELOCITY_START -2
-#define GROUND SCREEN_HEIGHT - 20
+#define GROUND SCREEN_HEIGHT - 25
 #define GRAVITY_FACTOR 13
 #define SWING_DELAY_MIN 0
 
-#define NET_BOUNDARY(body_width) ((SCREEN_WIDTH) / 2 - (body_width)*2)
+#define NET_BOUNDARY(player_width) ((SCREEN_WIDTH) / 2 - (player_width)-10)
 
 #define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 3 * (swingCounter) / 3)
 #define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 3)
@@ -44,21 +44,15 @@ typedef struct
 
 typedef struct
 {
-    int width;
-    int height;
-    u16 color;
-} PlayerBody;
-
-typedef struct
-{
     int x;
     int y;
+    int width;
+    int height;
     int velJump;
     int jumpGravityCounter;
     int swingFrameCounter;
     int isCpu;
     HitBox racketHitBox;
-    PlayerBody body;
 } Player;
 
 typedef struct
@@ -68,7 +62,8 @@ typedef struct
     int velX;
     int velY;
     int size;
-    u16 color;
+    int expectedLandingX;
+    u16 landingDebugColor;
 } Ball;
 
 typedef struct
@@ -79,8 +74,6 @@ typedef struct
     Player cpu;
     Ball ball;
 
-    int expectedBallLandingX;
-
     int playerServing;
     int cpuServing;
     int serveStarted;
@@ -88,20 +81,6 @@ typedef struct
     int cpuSwingDelay;
 
 } AppState;
-
-/*
-* TA-TODO: Add any additional structs that you need for your app.
-*
-* For example, for a Snake game, one could be:
-*
-* typedef struct {
-*   int heading;
-*   int length;
-*   int x;
-*   int y;
-* } Snake;
-*
-*/
 
 // This function can initialize an unused AppState struct.
 void initializeAppState(AppState *appState);

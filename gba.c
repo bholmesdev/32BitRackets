@@ -61,7 +61,17 @@ void drawFullScreenImageDMA(const u16 *image)
     DMA[3].cnt = (SCREEN_HEIGHT * SCREEN_WIDTH) | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
 }
 
-void drawImageDMA(int x, int y, int width, int height, u16 *image)
+void drawFullScreenImagePortionDMA(int x, int y, int width, int height, const u16 *image)
+{
+    for (int row = 0; row < height; row++)
+    {
+        DMA[3].src = &image[x + (y + row) * SCREEN_WIDTH];
+        DMA[3].dst = &videoBuffer[OFFSET(y + row, x, SCREEN_WIDTH)];
+        DMA[3].cnt = width | DMA_SOURCE_INCREMENT | DMA_DESTINATION_INCREMENT | DMA_ON;
+    }
+}
+
+void drawImageDMA(int x, int y, int width, int height, const u16 *image)
 {
     for (int row = 0; row < height; row++)
     {

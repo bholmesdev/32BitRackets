@@ -3,7 +3,7 @@
 
 #include "logic.h"
 
-#define BACKGROUND_COLOR 0xfeed
+#define BACKGROUND_COLOR (u16) COLOR(143, 238, 255)
 
 // This function will be used to draw everything about the state of your app
 // including the background and whatnot.

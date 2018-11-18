@@ -3,12 +3,11 @@
 
 void initializePlayers(Player *player, Player *cpu)
 {
-    player->body.width = cpu->body.width = PLAYER_WIDTH;
-    player->body.height = cpu->body.height = PLAYER_HEIGHT;
+    player->width = cpu->width = PLAYER_WIDTH;
+    player->height = cpu->height = PLAYER_HEIGHT;
+    player->racketHitBox.enabled = cpu->racketHitBox.enabled = 0;
 
-    player->body.color = cpu->body.color = RED;
-
-    player->y = cpu->y = SCREEN_HEIGHT - PLAYER_HEIGHT * 2;
+    player->y = cpu->y = GROUND - PLAYER_HEIGHT;
     player->x = 20;
     player->velJump = cpu->velJump = 0;
     cpu->x = SCREEN_WIDTH - PLAYER_WIDTH - 20;
@@ -20,12 +19,17 @@ void initializeAppState(AppState *appState)
     //SETUP PLAYER
     Player *player = &appState->player;
     Player *cpu = &appState->cpu;
+    Ball *ball = &appState->ball;
     initializePlayers(player, cpu);
 
     //SETUP HITBOX
-    // player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = CYAN;
     player->racketHitBox.size = cpu->racketHitBox.size = 12;
     player->swingFrameCounter = cpu->swingFrameCounter = 0;
+    // player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = CYAN;
+
+    //SETUP BALL
+    ball->size = 4;
+    ball->landingDebugColor = 0x7FF;
 
     // START PLAYER AS SERVER
     appState->playerServing = 1;
@@ -34,11 +38,9 @@ void initializeAppState(AppState *appState)
 
 void setUpBallForPlayerServe(Ball *ball, Player player)
 {
-    int offset = (player.isCpu) ? -(player.body.width - 4) : (player.body.width - 4);
+    int offset = (player.isCpu) ? -(player.width - 4) : (player.width - 4);
     ball->x = player.x + offset;
     ball->y = player.y;
-    ball->size = 5;
-    ball->color = 0x7FF;
 }
 
 void checkForReServe(Player player, Ball ball, AppState *state)
@@ -150,7 +152,7 @@ void jump(Player *player)
     player->y += player->velJump;
     player->jumpGravityCounter++;
 
-    if (player->y + player->body.height > GROUND)
+    if (player->y + player->height > GROUND)
     {
         player->jumpGravityCounter = 0;
     }
@@ -201,7 +203,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     }
     else //Allow player motion when not serving
     {
-        if (KEY_DOWN(BUTTON_RIGHT, BUTTONS) && (player->x < NET_BOUNDARY(player->body.width)))
+        if (KEY_DOWN(BUTTON_RIGHT, BUTTONS) && (player->x < NET_BOUNDARY(player->width)))
         {
             player->x += 2;
         }
@@ -221,7 +223,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         player->racketHitBox.enabled = 1;
     }
     //attempt CPU swing when ball gets close
-    if ((currentAppState->cpuSwingDelay > SWING_DELAY_MIN) && currentAppState->expectedBallLandingX - ball->x - currentAppState->cpuSwingDelay <= 0)
+    if ((currentAppState->cpuSwingDelay > SWING_DELAY_MIN) && ball->expectedLandingX - ball->x - currentAppState->cpuSwingDelay <= 0)
     {
         cpu->swingFrameCounter = SWING_FRAME_COUNTER_START;
         cpu->racketHitBox.enabled = 1;
@@ -230,7 +232,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 
     setRacketHitBox(player);
     setRacketHitBox(cpu);
-    moveCpuToBall(cpu, currentAppState->expectedBallLandingX);
+    moveCpuToBall(cpu, ball->expectedLandingX);
     setBallLocation(ball);
     checkForReServe(*player, *ball, &nextAppState);
     boing(ball);
@@ -240,17 +242,17 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     if (racketBallCollision(*player, ball))
     {
         nextAppState.playerServing = 0;
-        nextAppState.expectedBallLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y, ball->velX) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
-        if (nextAppState.expectedBallLandingX > SCREEN_WIDTH - 5)
+        nextAppState.ball.expectedLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y, ball->velX) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
+        if (nextAppState.ball.expectedLandingX > SCREEN_WIDTH - 5)
         {
-            nextAppState.expectedBallLandingX = SCREEN_WIDTH - 10;
+            nextAppState.ball.expectedLandingX = SCREEN_WIDTH - 10;
         }
         nextAppState.cpuSwingDelay = RANDOMIZED_SWING_TIMING(vBlankCounter, ball->velX); //setup cpu to swing
     }
     if (racketBallCollision(*cpu, ball))
     {
         nextAppState.cpuServing = 0;
-        nextAppState.expectedBallLandingX = 0;
+        nextAppState.ball.expectedLandingX = 0;
     }
 
     gravityCounter++;
