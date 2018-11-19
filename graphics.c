@@ -10,16 +10,9 @@ volatile OamEntry *ballSprite = &shadow[2];
 
 void drawBall(Ball ball)
 {
-    // u16 color = ball.color;
-    // if (undraw)
-    // {
-    //     color = BACKGROUND_COLOR;
-    // }
     ballSprite->attr0 = (ball.y - 2) | SPRITES_PALETTE_TYPE | TENNIS_BALL_SPRITE_SHAPE;
     ballSprite->attr1 = (ball.x - 2) | TENNIS_BALL_SPRITE_SIZE;
     ballSprite->attr2 = TENNIS_BALL_ID | TENNIS_BALL_PALETTE_ID;
-
-    // drawRectDMA(ball.x, ball.y, ball.size, ball.size, color);
 }
 
 int getSwingFrame(int swingFrameCounter)
@@ -91,6 +84,20 @@ void drawCpu(Player cpu, int currentlyServing)
     drawHitBox(cpu);
 }
 
+void drawScoreBoard(Score score)
+{
+    char scoreStr[80];
+    if ((score.player == 3) && (score.cpu == 3))
+    {
+        sprintf(scoreStr, "Deuce");
+    }
+    else
+    {
+        sprintf(scoreStr, "%s - %s", possibleScores[score.player], possibleScores[score.cpu]);
+    }
+    drawCenteredString(0, 15, SCREEN_WIDTH, 10, scoreStr, BLACK);
+}
+
 void drawBallDebug(AppState state)
 {
     char str[80];
@@ -123,15 +130,18 @@ void undrawAppState(AppState *state)
         drawFullScreenImagePortionDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, tennis_court_background);
     }
 
-    if (state->serveStarted)
+    if (state->serveStarted || state->textDisplay.durationCounter)
     {
-        drawFullScreenImagePortionDMA(0, 50, SCREEN_WIDTH, 20, tennis_court_background);
+        drawFullScreenImagePortionDMA(0, 40, SCREEN_WIDTH, 10, tennis_court_background);
     }
 
     if (state->ball.landingDebugColor)
     {
         drawFullScreenImagePortionDMA(state->ball.expectedLandingX, GROUND, 5, 5, tennis_court_background);
     }
+
+    // Undraw scoreboard
+    drawFullScreenImagePortionDMA(0, 15, SCREEN_WIDTH, 10, tennis_court_background);
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -140,12 +150,20 @@ void drawAppState(AppState *state)
 {
     drawPlayer(state->player, (state->playerServing && state->serveStarted));
     drawCpu(state->cpu, (state->cpuServing && state->serveStarted));
-    drawBall(state->ball);
+    if (!state->textDisplay.durationCounter)
+    {
+        drawBall(state->ball);
+    }
+    drawScoreBoard(state->score);
     drawSprites();
 
-    if (!(state->serveStarted) && (state->playerServing))
+    if (state->textDisplay.durationCounter)
     {
-        drawCenteredString(0, 50, SCREEN_WIDTH, 20, "Press A to serve", BLACK);
+        drawCenteredString(0, 40, SCREEN_WIDTH, 10, state->textDisplay.text, BLACK);
+    }
+    else if (!(state->serveStarted) && (state->playerServing))
+    {
+        drawCenteredString(0, 40, SCREEN_WIDTH, 10, "Press A to serve", BLACK);
     }
     if (state->ball.landingDebugColor)
     {

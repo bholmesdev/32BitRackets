@@ -5,6 +5,9 @@
 
 #define PLAYER_HEIGHT 20
 #define PLAYER_WIDTH 20
+#define BALL_SIZE 4
+#define COURT_EDGE_LEFT 8
+#define COURT_EDGE_RIGHT (SCREEN_WIDTH) - 8 - BALL_SIZE
 
 #define SWING_FRAME_COUNTER_START 12
 #define SERVE_VELOCITY_START -2
@@ -12,18 +15,18 @@
 #define GRAVITY_FACTOR 13
 #define SWING_DELAY_MIN 0
 
-#define NET_BOUNDARY(player_width) ((SCREEN_WIDTH) / 2 - (player_width)-10)
+#define NET_BOUNDARY_LEFT ((SCREEN_WIDTH) / 2 - 2 * (BALL_SIZE))
+#define NET_BOUNDARY_RIGHT ((SCREEN_WIDTH) / 2 + (BALL_SIZE))
 
-#define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - 3 * (swingCounter) / 3)
-#define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + 3 * (swingCounter) / 3)
+#define HIT_BOX_X(playerX, swingCounter) ((playerX) + 10 - (swingCounter))
+#define HIT_BOX_Y(playerY, swingCounter) ((playerY)-10 + (swingCounter))
 
-#define HIT_BOX_X_CPU(playerX, swingCounter) ((playerX)-10 + 3 * (swingCounter) / 3)
+#define HIT_BOX_X_CPU(playerX, swingCounter) ((playerX)-5 + (swingCounter))
 
 #define BALL_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)) / 4 + 1)
 #define BALL_VEL_Y(hitBoxY, playerY) (((playerY) - (hitBoxY)) / 4 - 3)
 
-#define BALL_CPU_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)) / 4 - 1)
-#define BALL_CPU_VEL_Y(hitBoxY, playerY) (((playerY) - (hitBoxY)) / 4 + 3)
+#define BALL_CPU_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)-5) / 4 - 1)
 
 #define APPLY_BALL_GRAVITY(velocity, gravityCounter) ((((gravityCounter) % (GRAVITY_FACTOR)) / (GRAVITY_FACTOR - 1)) + (velocity))
 #define APPLY_JUMP_GRAVITY(velocity, gravityCounter) ((((gravityCounter) % 7) / 6) + (velocity))
@@ -62,17 +65,31 @@ typedef struct
     int velX;
     int velY;
     int size;
+    int hasBounced;
     int expectedLandingX;
     u16 landingDebugColor;
 } Ball;
 
 typedef struct
 {
-    // Store whether or not the game is over in this member:
+    int player;
+    int cpu;
+} Score;
+
+typedef struct
+{
+    char *text;
+    int durationCounter;
+} TextDisplay;
+
+typedef struct
+{
     int gameOver;
     Player player;
     Player cpu;
     Ball ball;
+    Score score;
+    TextDisplay textDisplay;
 
     int playerServing;
     int cpuServing;

@@ -5,6 +5,8 @@ volatile unsigned short *videoBuffer = (volatile unsigned short *)0x6000000;
 u32 vBlankCounter = 0;
 u32 gravityCounter = 0;
 
+const char *possibleScores[7] = {"0", "15", "30", "40", "Adv", "Game"};
+
 unsigned short swing_red_palettes[3] =
     {
         SWING_RED0_PALETTE_ID,

@@ -25,6 +25,9 @@ typedef struct
 
 extern volatile OamEntry shadow[128];
 
+/** For storing possible tennis scores, indexable by actual current score */
+extern const char *possibleScores[7];
+
 // ---------------------------------------------------------------------------
 //                       MODE3 MACROS
 // ---------------------------------------------------------------------------
