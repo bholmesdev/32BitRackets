@@ -95,15 +95,19 @@ void drawScoreBoard(Score score)
     {
         sprintf(scoreStr, "%s - %s", possibleScores[score.player], possibleScores[score.cpu]);
     }
-    drawCenteredString(0, 15, SCREEN_WIDTH, 10, scoreStr, BLACK);
+    drawCenteredString(0, 5, SCREEN_WIDTH, 10, scoreStr, BLACK);
 }
 
 void drawMatchStandings(MatchStandings matchStandings, int yOffset)
 {
-    drawCenteredString(0, yOffset, SCREEN_WIDTH, 10, "S1  S2  S3", BLACK);
+    drawCenteredString(0, yOffset, SCREEN_WIDTH, 10, "S1  S2  S3", WHITE);
     for (int i = 0; i < MATCH_LENGTH; i++)
     {
         u16 color = matchStandings.setWinsByColor[i];
+        if (!color)
+        {
+            color = WHITE;
+        }
         char *character = matchStandings.setsCompleted[i];
         drawString(MATCH_STANDINGS_X_OFFSET(i), yOffset + 15, character, color);
     }
@@ -144,7 +148,7 @@ void undrawAppState(AppState *state)
     if (state->serveStarted || state->textDisplayQueue)
     {
         //Undraw text instructions
-        drawFullScreenImagePortionDMA(0, 40, SCREEN_WIDTH, 40, tennis_court_background);
+        drawFullScreenImagePortionDMA(70, 40, 100, 40, tennis_court_background);
     }
 
     if (state->ball.landingDebugColor)
@@ -154,7 +158,7 @@ void undrawAppState(AppState *state)
     }
 
     // Undraw scoreboard
-    drawFullScreenImagePortionDMA(0, 15, SCREEN_WIDTH, 10, tennis_court_background);
+    drawFullScreenImagePortionDMA(0, 5, SCREEN_WIDTH, 10, tennis_court_background);
 }
 
 void drawAppState(AppState *state)
@@ -172,6 +176,7 @@ void drawAppState(AppState *state)
     {
         TextDisplay textDisplay = *state->textDisplayQueue;
         u16 color = textDisplay.color ? textDisplay.color : BLACK;
+        drawCenteredString(0, 41, SCREEN_WIDTH, 10, textDisplay.text, BLACK);
         drawCenteredString(0, 40, SCREEN_WIDTH, 10, textDisplay.text, color);
         if (!strcmp(textDisplay.text, "Match Standings"))
         {
@@ -180,7 +185,8 @@ void drawAppState(AppState *state)
     }
     else if (!(state->serveStarted) && (state->playerServing))
     {
-        drawCenteredString(0, 40, SCREEN_WIDTH, 10, "Press A to serve", BLACK);
+        drawCenteredString(0, 41, SCREEN_WIDTH, 10, "Press B to serve", BLACK);
+        drawCenteredString(0, 40, SCREEN_WIDTH, 10, "Press B to serve", WHITE);
     }
     if (state->ball.landingDebugColor)
     {

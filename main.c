@@ -26,7 +26,7 @@ int main(void)
 {
     REG_DISPCNT = MODE3 | BG2_ENABLE | OBJ_ENABLE | SPRITES_DIMENSION_TYPE;
 
-    GBAState state = START;
+    GBAState state = APP_INIT;
 
     // We store the "previous" and "current" states.
     AppState currentAppState, nextAppState;

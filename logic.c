@@ -57,6 +57,7 @@ void addMatchStandingsToDisplayQueue(TextDisplay **textDisplayQueue, Score score
 {
     TextDisplay *textDisplay = (TextDisplay *)malloc(sizeof(TextDisplay));
     textDisplay->text = "Match Standings";
+    textDisplay->color = WHITE;
     textDisplay->durationCounter = 180;
 
     for (int i = 0; i < MATCH_LENGTH; i++)
@@ -70,7 +71,7 @@ void addMatchStandingsToDisplayQueue(TextDisplay **textDisplayQueue, Score score
         else
         {
             textDisplay->matchStandings.setsCompleted[i] = "-";
-            textDisplay->matchStandings.setWinsByColor[i] = BLACK;
+            textDisplay->matchStandings.setWinsByColor[i] = WHITE;
         }
     }
 
@@ -80,7 +81,7 @@ void addMatchStandingsToDisplayQueue(TextDisplay **textDisplayQueue, Score score
 
 void displayOut(TextDisplay **textDisplay)
 {
-    addTextToDisplayQueue("Out", 60, BLACK, textDisplay);
+    addTextToDisplayQueue("Out", 60, WHITE, textDisplay);
 }
 
 void popFromTextDisplayQueue(TextDisplay **textDisplayQueue)
@@ -308,9 +309,9 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     {
         int setsCompleted = nextAppState.score.setsCompleted + 1;
         nextAppState.score.setsCompleted = setsCompleted;
-        nextAppState.score.setWinsByColor[setsCompleted - 1] = BLUE;
+        nextAppState.score.setWinsByColor[setsCompleted - 1] = CYAN;
         addMatchStandingsToDisplayQueue(&nextAppState.textDisplayQueue, nextAppState.score);
-        addTextToDisplayQueue("Player wins", 120, BLUE, &nextAppState.textDisplayQueue);
+        addTextToDisplayQueue("Player wins", 120, CYAN, &nextAppState.textDisplayQueue);
         nextAppState.score.player = 0;
         nextAppState.score.cpu = 0;
     }
