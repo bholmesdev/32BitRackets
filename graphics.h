@@ -2,8 +2,10 @@
 #define GRAPHICS_SEEN
 
 #include "logic.h"
+#include "gba.h"
 
 #define BACKGROUND_COLOR (u16) COLOR(143, 238, 255)
+#define MATCH_STANDINGS_X_OFFSET(scoreIndex) ((SCREEN_WIDTH) / 2 - (1 - (scoreIndex)) * 25 - 4)
 
 // This function will be used to draw everything about the state of your app
 // including the background and whatnot.

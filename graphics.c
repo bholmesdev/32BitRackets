@@ -2,7 +2,7 @@
 #include "gba.h"
 #include "sprites.h"
 #include "./images/tennisCourtBackground.h"
-#include <stdio.h>
+#include <string.h>
 
 volatile OamEntry *playerSprite = &shadow[0];
 volatile OamEntry *cpuSprite = &shadow[1];
@@ -98,6 +98,17 @@ void drawScoreBoard(Score score)
     drawCenteredString(0, 15, SCREEN_WIDTH, 10, scoreStr, BLACK);
 }
 
+void drawMatchStandings(MatchStandings matchStandings, int yOffset)
+{
+    drawCenteredString(0, yOffset, SCREEN_WIDTH, 10, "S1  S2  S3", BLACK);
+    for (int i = 0; i < MATCH_LENGTH; i++)
+    {
+        u16 color = matchStandings.setWinsByColor[i];
+        char *character = matchStandings.setsCompleted[i];
+        drawString(MATCH_STANDINGS_X_OFFSET(i), yOffset + 15, character, color);
+    }
+}
+
 void drawBallDebug(AppState state)
 {
     char str[80];
@@ -133,7 +144,7 @@ void undrawAppState(AppState *state)
     if (state->serveStarted || state->textDisplayQueue)
     {
         //Undraw text instructions
-        drawFullScreenImagePortionDMA(0, 40, SCREEN_WIDTH, 10, tennis_court_background);
+        drawFullScreenImagePortionDMA(0, 40, SCREEN_WIDTH, 40, tennis_court_background);
     }
 
     if (state->ball.landingDebugColor)
@@ -159,7 +170,13 @@ void drawAppState(AppState *state)
 
     if (state->textDisplayQueue != NULL)
     {
-        drawCenteredString(0, 40, SCREEN_WIDTH, 10, state->textDisplayQueue->text, BLACK);
+        TextDisplay textDisplay = *state->textDisplayQueue;
+        u16 color = textDisplay.color ? textDisplay.color : BLACK;
+        drawCenteredString(0, 40, SCREEN_WIDTH, 10, textDisplay.text, color);
+        if (!strcmp(textDisplay.text, "Match Standings"))
+        {
+            drawMatchStandings(textDisplay.matchStandings, 55);
+        }
     }
     else if (!(state->serveStarted) && (state->playerServing))
     {

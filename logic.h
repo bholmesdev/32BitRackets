@@ -10,6 +10,7 @@
 #define BALL_SIZE 4
 #define COURT_EDGE_LEFT 8
 #define COURT_EDGE_RIGHT (SCREEN_WIDTH) - 8 - BALL_SIZE
+#define MATCH_LENGTH 3
 
 #define SWING_FRAME_COUNTER_START 12
 #define SERVE_VELOCITY_START -2
@@ -76,18 +77,29 @@ typedef struct
 {
     int player;
     int cpu;
+    int setsCompleted;
+    u16 setWinsByColor[MATCH_LENGTH];
 } Score;
+
+typedef struct
+{
+    char *setsCompleted[MATCH_LENGTH];
+    u16 setWinsByColor[MATCH_LENGTH];
+} MatchStandings;
 
 typedef struct TextDisplay
 {
     char *text;
     int durationCounter;
+    u16 color;
+    MatchStandings matchStandings;
     struct TextDisplay *next;
 } TextDisplay;
 
 typedef struct
 {
     int gameOver;
+    int matchWinner;
     Player player;
     Player cpu;
     Ball ball;

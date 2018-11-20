@@ -34,12 +34,63 @@ void initializeAppState(AppState *appState)
     // ball->landingDebugColor = 0x7FF;
 
     //ZERO OUT SCORES
-    score->player = 0;
-    score->cpu = 0;
+    score->player = 5;
+    score->cpu = 3;
 
     // START PLAYER AS SERVER
     appState->playerServing = 1;
     appState->serveStarted = 0;
+}
+
+void addTextToDisplayQueue(char *text, int durationCounter, u16 color, TextDisplay **textDisplayQueue)
+{
+    TextDisplay *textDisplay = (TextDisplay *)malloc(sizeof(TextDisplay));
+    textDisplay->text = text;
+    textDisplay->durationCounter = durationCounter;
+    textDisplay->color = color;
+
+    textDisplay->next = *textDisplayQueue;
+    *textDisplayQueue = textDisplay;
+}
+
+void addMatchStandingsToDisplayQueue(TextDisplay **textDisplayQueue, Score score)
+{
+    TextDisplay *textDisplay = (TextDisplay *)malloc(sizeof(TextDisplay));
+    textDisplay->text = "Match Standings";
+    textDisplay->durationCounter = 180;
+
+    for (int i = 0; i < MATCH_LENGTH; i++)
+    {
+        u16 winner = score.setWinsByColor[i];
+        if (winner)
+        {
+            textDisplay->matchStandings.setsCompleted[i] = "X";
+            textDisplay->matchStandings.setWinsByColor[i] = winner;
+        }
+        else
+        {
+            textDisplay->matchStandings.setsCompleted[i] = "-";
+            textDisplay->matchStandings.setWinsByColor[i] = BLACK;
+        }
+    }
+
+    textDisplay->next = *textDisplayQueue;
+    *textDisplayQueue = textDisplay;
+}
+
+void displayOut(TextDisplay **textDisplay)
+{
+    addTextToDisplayQueue("Out", 60, BLACK, textDisplay);
+}
+
+void popFromTextDisplayQueue(TextDisplay **textDisplayQueue)
+{
+    if (textDisplayQueue != NULL)
+    {
+        TextDisplay *oldHead = *textDisplayQueue;
+        *textDisplayQueue = (*textDisplayQueue)->next;
+        free(oldHead);
+    }
 }
 
 void setScore(Player advantagePlayer, Score *score)
@@ -56,11 +107,11 @@ void setScore(Player advantagePlayer, Score *score)
     {
         score->player = score->cpu = 3;
     }
-    if ((score->player == 4) && (score->cpu < 3)) // Player wins
+    if ((score->player == 4) && (score->cpu < 3)) // Player wins, no deuce
     {
         score->player = 5;
     }
-    if ((score->cpu == 4) && (score->player < 3)) // Cpu wins
+    if ((score->cpu == 4) && (score->player < 3)) // Cpu wins, no deuce
     {
         score->cpu = 5;
     }
@@ -71,30 +122,6 @@ void setScore(Player advantagePlayer, Score *score)
 
     if (score->cpu > 5)
         score->cpu = 5;
-}
-
-void addTextToDisplayQueue(char *text, int durationCounter, TextDisplay **textDisplayQueue)
-{
-    TextDisplay *textDisplay = (TextDisplay *)malloc(sizeof(TextDisplay));
-    textDisplay->text = text;
-    textDisplay->durationCounter = durationCounter;
-    textDisplay->next = *textDisplayQueue;
-    *textDisplayQueue = textDisplay;
-}
-
-void displayOut(TextDisplay **textDisplay)
-{
-    addTextToDisplayQueue("Out", 60, textDisplay);
-}
-
-void popFromTextDisplayQueue(TextDisplay **textDisplayQueue)
-{
-    if (textDisplayQueue != NULL)
-    {
-        TextDisplay *oldHead = *textDisplayQueue;
-        *textDisplayQueue = (*textDisplayQueue)->next;
-        free(oldHead);
-    }
 }
 
 void setUpBallForPlayerServe(Ball *ball, Player player)
@@ -274,6 +301,27 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         }
         initializePlayers(player, cpu);
         return nextAppState;
+    }
+
+    // If we have a winner, reset everything and show match standings
+    if (currentAppState->score.player == 5)
+    {
+        int setsCompleted = nextAppState.score.setsCompleted + 1;
+        nextAppState.score.setsCompleted = setsCompleted;
+        nextAppState.score.setWinsByColor[setsCompleted - 1] = BLUE;
+        addMatchStandingsToDisplayQueue(&nextAppState.textDisplayQueue, nextAppState.score);
+        addTextToDisplayQueue("Player wins", 120, BLUE, &nextAppState.textDisplayQueue);
+        nextAppState.score.player = 0;
+        nextAppState.score.cpu = 0;
+    }
+    if (currentAppState->score.cpu == 5)
+    {
+        nextAppState.score.setsCompleted++;
+        nextAppState.score.setWinsByColor[nextAppState.score.setsCompleted - 1] = RED;
+        addMatchStandingsToDisplayQueue(&nextAppState.textDisplayQueue, nextAppState.score);
+        addTextToDisplayQueue("CPU wins", 120, RED, &nextAppState.textDisplayQueue);
+        nextAppState.score.player = 0;
+        nextAppState.score.cpu = 0;
     }
 
     int ballComingTowardsPlayer = (ball->velX <= 0);
