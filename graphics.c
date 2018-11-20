@@ -31,15 +31,6 @@ void hideSprites(void)
     drawSprites();
 }
 
-void drawHitBox(Player player)
-{
-    if (player.racketHitBox.debugColor && player.racketHitBox.enabled)
-    {
-        HitBox hitBox = player.racketHitBox;
-        drawRectDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, hitBox.debugColor);
-    }
-}
-
 void drawPlayer(Player player, int currentlyServing)
 {
     if (player.racketHitBox.enabled)
@@ -68,8 +59,6 @@ void drawPlayer(Player player, int currentlyServing)
             playerSprite->attr2 = BLUE_RUNNING_FRAME_2_ID | BLUE_RUNNING_FRAME_2_PALETTE_ID;
         }
     }
-
-    drawHitBox(player);
 }
 
 void drawCpu(Player cpu)
@@ -94,8 +83,6 @@ void drawCpu(Player cpu)
             cpuSprite->attr2 = RED_RUNNING_FRAME_2_ID | RED_RUNNING_FRAME_2_PALETTE_ID;
         }
     }
-
-    drawHitBox(cpu);
 }
 
 void drawScoreBoard(Score score)
@@ -125,13 +112,6 @@ void drawMatchStandings(MatchStandings matchStandings, int yOffset)
         char *character = matchStandings.setsCompleted[i];
         drawString(MATCH_STANDINGS_X_OFFSET(i), yOffset + 15, character, color);
     }
-}
-
-void drawBallDebug(AppState state)
-{
-    char str[80];
-    sprintf(str, "VelX = %d VelY = %d", state.ball.velX, state.ball.velY);
-    drawString(10, 30, str, BLACK);
 }
 
 // This function will be used to draw everything about the app

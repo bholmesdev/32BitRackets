@@ -52,15 +52,20 @@ void initializeAppState(AppState *appState)
     //SETUP HITBOX
     player->racketHitBox.size = cpu->racketHitBox.size = 12;
     player->swingFrameCounter = cpu->swingFrameCounter = 0;
-    // player->racketHitBox.debugColor = cpu->racketHitBox.debugColor = CYAN;
 
     //SETUP BALL
     ball->size = BALL_SIZE;
-    // ball->landingDebugColor = 0x7FF;
 
     //ZERO OUT SCORES
     score->player = 0;
     score->cpu = 0;
+    score->setsCompleted = 0;
+    for (int i = 0; i < MATCH_LENGTH; i++)
+    {
+        score->setWinsByColor[i] = 0;
+    }
+    appState->playerMatchWinner = 0;
+    appState->cpuMatchWinner = 0;
 
     // START PLAYER AS SERVER
     appState->playerServing = 1;
@@ -141,13 +146,6 @@ void setScore(Player advantagePlayer, Score *score)
     {
         score->cpu = 5;
     }
-
-    //TODO: Remove these lines
-    if (score->player > 5)
-        score->player = 5;
-
-    if (score->cpu > 5)
-        score->cpu = 5;
 }
 
 void setUpBallForPlayerServe(Ball *ball, Player player)
