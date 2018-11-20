@@ -15,6 +15,31 @@ void initializePlayers(Player *player, Player *cpu)
     cpu->isCpu = 1;
 }
 
+void checkForMatchWinner(u16 *setWinsByColor, int *playerMatchWinner, int *cpuMatchWinner)
+{
+    int playerWins = 0;
+    int cpuWins = 0;
+    for (int i = 0; i < MATCH_LENGTH; i++)
+    {
+        if (setWinsByColor[i] == CYAN)
+        {
+            playerWins++;
+        }
+        else if (setWinsByColor[i] == RED)
+        {
+            cpuWins++;
+        }
+        if (playerWins > 1)
+        {
+            *playerMatchWinner = 1;
+        }
+        if (cpuWins > 1)
+        {
+            *cpuMatchWinner = 1;
+        }
+    }
+}
+
 void initializeAppState(AppState *appState)
 {
     //SETUP PLAYER
@@ -325,6 +350,8 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         nextAppState.score.cpu = 0;
     }
 
+    checkForMatchWinner(currentAppState->score.setWinsByColor, &nextAppState.playerMatchWinner, &nextAppState.cpuMatchWinner);
+
     int ballComingTowardsPlayer = (ball->velX <= 0);
 
     if (boing(ball)) // check for out on ball bounce
@@ -367,14 +394,6 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
             }
             return nextAppState;
         }
-    }
-    else if (currentAppState->cpuServing)
-    {
-        if (!currentAppState->serveStarted)
-        {
-            setUpBallForPlayerServe(ball, currentAppState->cpu);
-        }
-        nextAppState.serveStarted = 1;
     }
     else //Allow player motion when not serving
     {
@@ -426,7 +445,6 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     }
     if (racketBallCollision(*cpu, ball))
     {
-        nextAppState.cpuServing = 0;
         nextAppState.ball.expectedLandingX = 0;
     }
 

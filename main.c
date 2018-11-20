@@ -4,6 +4,7 @@
 #include "sprites.h"
 #include "images/splashScreen.h"
 #include "images/rulesScreen.h"
+#include "images/winnerScreen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +39,8 @@ int main(void)
     int blinkCounter = 0;
     int wipeAnimationCounter = 0;
 
+    int playerWon = 0;
+
     while (1)
     {
         // Load the current state of the buttons
@@ -48,6 +51,7 @@ int main(void)
         {
         case START:
             waitForVBlank();
+            hideSprites();
             drawFullScreenImageDMA(splash_screen);
 
             state = START_WAIT_FOR_INPUT;
@@ -140,21 +144,41 @@ int main(void)
                 state = START;
             }
 
-            // Check if the app is exiting. If it is, then go to the exit state.
-            if (nextAppState.gameOver)
+            if (nextAppState.playerMatchWinner || nextAppState.cpuMatchWinner)
+            {
+                playerWon = nextAppState.playerMatchWinner;
                 state = APP_EXIT;
+            }
 
             break;
         case APP_EXIT:
             // Wait for vblank
             waitForVBlank();
 
-            // TA-TODO: Draw the exit / gameover screen
+            drawFullScreenImageDMA(winner_background);
+            hideSprites();
+
+            if (playerWon)
+            {
+                drawCenteredString(0, 1, SCREEN_WIDTH, SCREEN_HEIGHT, "Nice serves Player!", BLACK);
+                drawCenteredString(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, "Nice serves Player!", WHITE);
+            }
+            else
+            {
+                drawCenteredString(0, 1, SCREEN_WIDTH, SCREEN_HEIGHT, "Better luck next time!", BLACK);
+                drawCenteredString(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, "Better luck next time!", WHITE);
+            }
+
+            drawCenteredString(0, SCREEN_HEIGHT - 30, SCREEN_WIDTH, 10, "Press Start for a Rematch", BLACK);
+            drawCenteredString(0, SCREEN_HEIGHT - 31, SCREEN_WIDTH, 10, "Press Start for a Rematch", YELLOW);
 
             state = APP_EXIT_NODRAW;
             break;
         case APP_EXIT_NODRAW:
-            // TA-TODO: Check for a button press here to go back to the start screen
+            if (KEY_JUST_PRESSED(BUTTON_START, currentButtons, previousButtons))
+            {
+                state = START;
+            }
 
             break;
         }

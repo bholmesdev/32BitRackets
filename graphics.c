@@ -15,18 +15,6 @@ void drawBall(Ball ball)
     ballSprite->attr2 = TENNIS_BALL_ID | TENNIS_BALL_PALETTE_ID;
 }
 
-void hideSprites(void)
-{
-    playerSprite->attr0 = 1 | SPRITES_PALETTE_TYPE | SWING_BLUE_SPRITE_SHAPE;
-    playerSprite->attr1 = 1 | SWING_BLUE_SPRITE_SIZE;
-
-    cpuSprite->attr0 = 1 | SPRITES_PALETTE_TYPE | SWING_BLUE_SPRITE_SHAPE;
-    cpuSprite->attr1 = 1 | SWING_BLUE_SPRITE_SIZE;
-
-    ballSprite->attr0 = SCREEN_HEIGHT | SPRITES_PALETTE_TYPE | TENNIS_BALL_SPRITE_SHAPE;
-    ballSprite->attr1 = SCREEN_WIDTH | TENNIS_BALL_SPRITE_SIZE;
-}
-
 int getSwingFrame(int swingFrameCounter)
 {
     int frame = (SWING_FRAME_COUNTER_START - swingFrameCounter) / 4;
@@ -35,6 +23,12 @@ int getSwingFrame(int swingFrameCounter)
         frame = 2;
     }
     return frame;
+}
+
+void hideSprites(void)
+{
+    initializeSprites();
+    drawSprites();
 }
 
 void drawHitBox(Player player)
@@ -78,9 +72,9 @@ void drawPlayer(Player player, int currentlyServing)
     drawHitBox(player);
 }
 
-void drawCpu(Player cpu, int currentlyServing)
+void drawCpu(Player cpu)
 {
-    if (cpu.racketHitBox.enabled && !currentlyServing)
+    if (cpu.racketHitBox.enabled)
     {
         int frame = getSwingFrame(cpu.swingFrameCounter);
         cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SWING_RED_SPRITE_SHAPE;
@@ -184,7 +178,7 @@ void undrawAppState(AppState *state)
 void drawAppState(AppState *state)
 {
     drawPlayer(state->player, (state->playerServing && state->serveStarted));
-    drawCpu(state->cpu, (state->cpuServing && state->serveStarted));
+    drawCpu(state->cpu);
     if (state->textDisplayQueue == NULL)
     {
         drawBall(state->ball);

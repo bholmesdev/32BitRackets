@@ -99,7 +99,8 @@ typedef struct TextDisplay
 typedef struct
 {
     int gameOver;
-    int matchWinner;
+    int playerMatchWinner;
+    int cpuMatchWinner;
     Player player;
     Player cpu;
     Ball ball;
@@ -107,7 +108,6 @@ typedef struct
     TextDisplay *textDisplayQueue;
 
     int playerServing;
-    int cpuServing;
     int serveStarted;
 
     int cpuSwingDelay;
