@@ -2,6 +2,8 @@
 #define LOGIC_SEEN
 
 #include "gba.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #define PLAYER_HEIGHT 20
 #define PLAYER_WIDTH 20
@@ -26,7 +28,7 @@
 #define BALL_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)) / 4 + 1)
 #define BALL_VEL_Y(hitBoxY, playerY) (((playerY) - (hitBoxY)) / 4 - 3)
 
-#define BALL_CPU_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)-5) / 4 - 1)
+#define BALL_CPU_VEL_X(hitBoxX, playerX) (((hitBoxX) - (playerX)-4) / 4 - 1)
 
 #define APPLY_BALL_GRAVITY(velocity, gravityCounter) ((((gravityCounter) % (GRAVITY_FACTOR)) / (GRAVITY_FACTOR - 1)) + (velocity))
 #define APPLY_JUMP_GRAVITY(velocity, gravityCounter) ((((gravityCounter) % 7) / 6) + (velocity))
@@ -76,10 +78,11 @@ typedef struct
     int cpu;
 } Score;
 
-typedef struct
+typedef struct TextDisplay
 {
     char *text;
     int durationCounter;
+    struct TextDisplay *next;
 } TextDisplay;
 
 typedef struct
@@ -89,7 +92,7 @@ typedef struct
     Player cpu;
     Ball ball;
     Score score;
-    TextDisplay textDisplay;
+    TextDisplay *textDisplayQueue;
 
     int playerServing;
     int cpuServing;

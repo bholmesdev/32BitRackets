@@ -64,6 +64,8 @@ void setScore(Player advantagePlayer, Score *score)
     {
         score->cpu = 5;
     }
+
+    //TODO: Remove these lines
     if (score->player > 5)
         score->player = 5;
 
@@ -71,10 +73,28 @@ void setScore(Player advantagePlayer, Score *score)
         score->cpu = 5;
 }
 
-void displayOut(TextDisplay *textDisplay)
+void addTextToDisplayQueue(char *text, int durationCounter, TextDisplay **textDisplayQueue)
 {
-    textDisplay->text = "Out";
-    textDisplay->durationCounter = 60;
+    TextDisplay *textDisplay = (TextDisplay *)malloc(sizeof(TextDisplay));
+    textDisplay->text = text;
+    textDisplay->durationCounter = durationCounter;
+    textDisplay->next = *textDisplayQueue;
+    *textDisplayQueue = textDisplay;
+}
+
+void displayOut(TextDisplay **textDisplay)
+{
+    addTextToDisplayQueue("Out", 60, textDisplay);
+}
+
+void popFromTextDisplayQueue(TextDisplay **textDisplayQueue)
+{
+    if (textDisplayQueue != NULL)
+    {
+        TextDisplay *oldHead = *textDisplayQueue;
+        *textDisplayQueue = (*textDisplayQueue)->next;
+        free(oldHead);
+    }
 }
 
 void setUpBallForPlayerServe(Ball *ball, Player player)
@@ -100,7 +120,7 @@ void reinitializeServe(Player player, Ball ball, AppState *state)
         setScore(state->player, &state->score);
         if (!ball.hasBounced) //if there was no bounce, it must be out
         {
-            displayOut(&state->textDisplay);
+            displayOut(&state->textDisplayQueue);
         }
     }
     else if ((!ball.hasBounced && (ball.x > COURT_EDGE_RIGHT)) || (ball.hasBounced && ball.x < 0))
@@ -110,7 +130,7 @@ void reinitializeServe(Player player, Ball ball, AppState *state)
         setScore(state->cpu, &state->score);
         if (!ball.hasBounced) //if there was no bounce, it must be out
         {
-            displayOut(&state->textDisplay);
+            displayOut(&state->textDisplayQueue);
         }
     }
 }
@@ -128,7 +148,7 @@ void setBallLocation(Ball *ball)
     ball->y += ball->velY;
 }
 
-int getBallLandingX(Ball ball)
+int getBallLandingX(Ball ball, Player player)
 {
     int horizontalTravel = 0;
     if (ball.velX == 3)
@@ -143,7 +163,17 @@ int getBallLandingX(Ball ball)
     {
         horizontalTravel = 85;
     }
-    return ball.x + horizontalTravel;
+    int expectedBallLandingX = ball.x + horizontalTravel + PLAYER_JUMP_CPU_POS_FACTOR(player.y, ball.velX) - BALL_SPEED_CPU_POS_FACTOR(ball.velX);
+    ;
+    if (!expectedBallLandingX || (expectedBallLandingX > COURT_EDGE_RIGHT)) // if it will be out, return to center court
+    {
+        expectedBallLandingX = (SCREEN_WIDTH * 3) / 4;
+    }
+    if (expectedBallLandingX < NET_BOUNDARY_RIGHT + PLAYER_WIDTH) // if the ball is close to the net, go for the bounce
+    {
+        expectedBallLandingX = COURT_EDGE_RIGHT;
+    }
+    return expectedBallLandingX;
 }
 
 void setRacketHitBox(Player *player)
@@ -188,13 +218,9 @@ int racketBallCollision(Player player, Ball *ball)
 
 void moveCpuToBall(Player *cpu, int expectedBallLandingX)
 {
-    if (!expectedBallLandingX || (expectedBallLandingX > COURT_EDGE_RIGHT)) // if it will be out, return to center court
+    if (expectedBallLandingX == 0)
     {
-        expectedBallLandingX = (SCREEN_WIDTH * 3) / 4;
-    }
-    if (expectedBallLandingX < NET_BOUNDARY_RIGHT + PLAYER_WIDTH) // if the ball is close to the net, go for the bounce
-    {
-        expectedBallLandingX = SCREEN_WIDTH - PLAYER_WIDTH;
+        expectedBallLandingX = 3 * SCREEN_WIDTH / 4; // go to center court by default
     }
     int diff = expectedBallLandingX - cpu->x;
     if ((expectedBallLandingX) && ((diff < -1) || (diff > 1)))
@@ -239,9 +265,13 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     Player *cpu = &nextAppState.cpu;
     Ball *ball = &nextAppState.ball;
 
-    if (currentAppState->textDisplay.durationCounter)
+    if (currentAppState->textDisplayQueue != NULL)
     {
-        nextAppState.textDisplay.durationCounter--;
+        nextAppState.textDisplayQueue->durationCounter--;
+        if ((*currentAppState->textDisplayQueue).durationCounter <= 0)
+        {
+            popFromTextDisplayQueue(&nextAppState.textDisplayQueue);
+        }
         initializePlayers(player, cpu);
         return nextAppState;
     }
@@ -253,7 +283,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         ball->hasBounced = 1;
         if (ballComingTowardsPlayer && (ball->x > NET_BOUNDARY_LEFT))
         {
-            displayOut(&nextAppState.textDisplay);
+            displayOut(&nextAppState.textDisplayQueue);
             setScore(*player, &nextAppState.score);
             initializePlayers(player, cpu);
             setUpBallForPlayerServe(ball, currentAppState->player);
@@ -263,7 +293,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         }
         if (!ballComingTowardsPlayer && (ball->x < NET_BOUNDARY_RIGHT))
         {
-            displayOut(&nextAppState.textDisplay);
+            displayOut(&nextAppState.textDisplayQueue);
             setScore(*cpu, &nextAppState.score);
             initializePlayers(player, cpu);
             setUpBallForPlayerServe(ball, currentAppState->player);
@@ -336,10 +366,14 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     // on racket->ball collision, we assume serving is complete
     if (racketBallCollision(*player, ball))
     {
+        nextAppState.ball.expectedLandingX = getBallLandingX(*ball, *player);
+        nextAppState.cpuSwingDelay = RANDOMIZED_SWING_TIMING(vBlankCounter, ball->velX); //set up cpu to swing
+        if (nextAppState.ball.expectedLandingX >= SCREEN_WIDTH - PLAYER_WIDTH)
+        {
+            nextAppState.cpuSwingDelay /= 2;
+        }
         nextAppState.playerServing = 0;
         ball->hasBounced = 0;
-        nextAppState.ball.expectedLandingX = getBallLandingX(*ball) + PLAYER_JUMP_CPU_POS_FACTOR(player->y, ball->velX) - BALL_SPEED_CPU_POS_FACTOR(ball->velX);
-        nextAppState.cpuSwingDelay = RANDOMIZED_SWING_TIMING(vBlankCounter, ball->velX); //setup cpu to swing
     }
     if (racketBallCollision(*cpu, ball))
     {

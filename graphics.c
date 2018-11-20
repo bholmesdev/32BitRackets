@@ -114,29 +114,31 @@ void fullDrawAppState(AppState *state)
     UNUSED(state);
 }
 
-// This function will be used to undraw (i.e. erase) things that might
-// move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state)
 {
     if (state->player.racketHitBox.debugColor)
     {
+        //Undraw hitbox when debug color is on
         HitBox hitBox = state->player.racketHitBox;
         drawFullScreenImagePortionDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, tennis_court_background);
     }
 
     if (state->cpu.racketHitBox.debugColor)
     {
+        //Undraw hitbox when debug color is on
         HitBox hitBox = state->cpu.racketHitBox;
         drawFullScreenImagePortionDMA(hitBox.x, hitBox.y, hitBox.size, hitBox.size, tennis_court_background);
     }
 
-    if (state->serveStarted || state->textDisplay.durationCounter)
+    if (state->serveStarted || state->textDisplayQueue)
     {
+        //Undraw text instructions
         drawFullScreenImagePortionDMA(0, 40, SCREEN_WIDTH, 10, tennis_court_background);
     }
 
     if (state->ball.landingDebugColor)
     {
+        //Undraw ball when debug color is on
         drawFullScreenImagePortionDMA(state->ball.expectedLandingX, GROUND, 5, 5, tennis_court_background);
     }
 
@@ -144,22 +146,20 @@ void undrawAppState(AppState *state)
     drawFullScreenImagePortionDMA(0, 15, SCREEN_WIDTH, 10, tennis_court_background);
 }
 
-// This function will be used to draw things that might have moved in a frame.
-// For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state)
 {
     drawPlayer(state->player, (state->playerServing && state->serveStarted));
     drawCpu(state->cpu, (state->cpuServing && state->serveStarted));
-    if (!state->textDisplay.durationCounter)
+    if (state->textDisplayQueue == NULL)
     {
         drawBall(state->ball);
     }
     drawScoreBoard(state->score);
     drawSprites();
 
-    if (state->textDisplay.durationCounter)
+    if (state->textDisplayQueue != NULL)
     {
-        drawCenteredString(0, 40, SCREEN_WIDTH, 10, state->textDisplay.text, BLACK);
+        drawCenteredString(0, 40, SCREEN_WIDTH, 10, state->textDisplayQueue->text, BLACK);
     }
     else if (!(state->serveStarted) && (state->playerServing))
     {
