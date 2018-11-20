@@ -1,6 +1,7 @@
 32 BIT RACKETS
 
 Thanks for checking out the world's most advanced tennis match simulator (circa 2001)!
+If you're unfamiliar with the rules of tennis, you can brush up here: https://en.wikipedia.org/wiki/Tennis
 
 The controls are pretty simple:
 - Press A to Jump
