@@ -26,7 +26,7 @@ int main(void)
 {
     REG_DISPCNT = MODE3 | BG2_ENABLE | OBJ_ENABLE | SPRITES_DIMENSION_TYPE;
 
-    GBAState state = APP_INIT;
+    GBAState state = START;
 
     // We store the "previous" and "current" states.
     AppState currentAppState, nextAppState;
@@ -134,6 +134,11 @@ int main(void)
 
             // Now set the current state as the next state for the next iter.
             currentAppState = nextAppState;
+
+            if (KEY_JUST_PRESSED(BUTTON_SELECT, currentButtons, previousButtons))
+            {
+                state = START;
+            }
 
             // Check if the app is exiting. If it is, then go to the exit state.
             if (nextAppState.gameOver)

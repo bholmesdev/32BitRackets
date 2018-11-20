@@ -34,8 +34,8 @@ void initializeAppState(AppState *appState)
     // ball->landingDebugColor = 0x7FF;
 
     //ZERO OUT SCORES
-    score->player = 5;
-    score->cpu = 3;
+    score->player = 0;
+    score->cpu = 0;
 
     // START PLAYER AS SERVER
     appState->playerServing = 1;
