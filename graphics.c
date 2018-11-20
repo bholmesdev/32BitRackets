@@ -63,9 +63,16 @@ void drawPlayer(Player player, int currentlyServing)
     }
     else
     {
-        playerSprite->attr0 = (player.y - 5) | SPRITES_PALETTE_TYPE | SWING_BLUE_SPRITE_SHAPE;
-        playerSprite->attr1 = player.x | SWING_BLUE_SPRITE_SIZE;
-        playerSprite->attr2 = swing_blue_frames[1] | swing_blue_palettes[1];
+        playerSprite->attr0 = (player.y - 5) | SPRITES_PALETTE_TYPE | BLUE_RUNNING_FRAME_1_SPRITE_SHAPE;
+        playerSprite->attr1 = player.x | BLUE_RUNNING_FRAME_1_SPRITE_SIZE;
+        if (player.x % 30 < 15)
+        {
+            playerSprite->attr2 = BLUE_RUNNING_FRAME_1_ID | BLUE_RUNNING_FRAME_1_PALETTE_ID;
+        }
+        else
+        {
+            playerSprite->attr2 = BLUE_RUNNING_FRAME_2_ID | BLUE_RUNNING_FRAME_2_PALETTE_ID;
+        }
     }
 
     drawHitBox(player);
@@ -80,17 +87,18 @@ void drawCpu(Player cpu, int currentlyServing)
         cpuSprite->attr1 = (cpu.x - PLAYER_WIDTH) | SWING_RED_SPRITE_SIZE;
         cpuSprite->attr2 = swing_red_frames[frame] | swing_red_palettes[frame];
     }
-    else if (currentlyServing)
-    {
-        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SERVE_RED_SPRITE_SHAPE;
-        cpuSprite->attr1 = cpu.x | SERVE_RED_SPRITE_SIZE;
-        cpuSprite->attr2 = SERVE_RED_ID | SERVE_RED_PALETTE_ID;
-    }
     else
     {
-        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | SWING_RED_SPRITE_SHAPE;
-        cpuSprite->attr1 = (cpu.x - PLAYER_WIDTH) | SWING_RED_SPRITE_SIZE;
-        cpuSprite->attr2 = swing_red_frames[1] | swing_red_palettes[1];
+        cpuSprite->attr0 = (cpu.y - 5) | SPRITES_PALETTE_TYPE | RED_RUNNING_FRAME_1_SPRITE_SHAPE;
+        cpuSprite->attr1 = (cpu.x - PLAYER_WIDTH) | RED_RUNNING_FRAME_1_SPRITE_SIZE;
+        if (cpu.x % 30 < 15)
+        {
+            cpuSprite->attr2 = RED_RUNNING_FRAME_1_ID | RED_RUNNING_FRAME_1_PALETTE_ID;
+        }
+        else
+        {
+            cpuSprite->attr2 = RED_RUNNING_FRAME_2_ID | RED_RUNNING_FRAME_2_PALETTE_ID;
+        }
     }
 
     drawHitBox(cpu);
